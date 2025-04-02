@@ -8,14 +8,14 @@
 #
 # Description:
 #  Helpful utility to
-#  1) Save nvram dhcp_staticlist and dhcp_hostnames to /opt/tmp. This will allow you to restore the values after performing a factory reset.
-#  2) Restore nvram dhcp_staticlist and dhcp_hostnames from /opt/tmp/.
-#  3) PPreview dhcp_staticlist and dhcp_hostnames in dnsmasq format
+#  1) Save nvram dhcp_staticlist and custom_clientlist to /opt/tmp. This will allow you to restore the values after performing a factory reset.
+#  2) Restore nvram dhcp_staticlist and custom_clientlist from /opt/tmp/.
+#  3) PPreview dhcp_staticlist and custom_clientlist in dnsmasq format
 #  4) Append Output DHCP Static List to /jffs/configs/dnsmasq.conf.add & Disable Manual Assignment in the WAN GUI. You will then be prompted to reboot the router to have the settings take effect.
 #  5) Disable DHCP Manual Assignment
 #  6) Enable DHCP Manual Assignment
-#  7) Backup nvram dhcp_staticlist and dhcp_hostnames to /opt/tmp/ and clear nvram values.
-#  8) Display character size of dhcp_staticlist and dhcp_hostnames
+#  7) Backup nvram dhcp_staticlist and custom_clientlist to /opt/tmp/ and clear nvram values.
+#  8) Display character size of dhcp_staticlist and custom_clientlist
 #
 ####################################################################################################
 
@@ -24,8 +24,10 @@
 
 COLOR_WHITE='\033[0m'
 COLOR_GREEN='\e[0;32m'
-DHCP_STATICLIST="/opt/tmp/dhcp_staticlist.txt"
-DHCP_HOSTNAMES="/opt/tmp/dhcp_hostnames.txt"
+STATICLIST="dhcp_staticlist"
+HOSTLIST="custom_clientlist"
+DHCP_STATICLIST="/opt/tmp/${STATICLIST}.txt"
+DHCP_HOSTNAMES="/opt/tmp/${HOSTLIST}.txt"
 MODEL=$(nvram get model)
 
 Menu_DHCP_Staticlist() {
@@ -33,16 +35,16 @@ Menu_DHCP_Staticlist() {
   clear
 
   while true; do
-    printf '\n\nUse this utility to save or restore dhcp_staticlist and dhcp_hostnames nvram values\n\n'
-    printf '%b[1]%b - Save nvram dhcp_staticlist and dhcp_hostnames to /opt/tmp/\n' "${COLOR_GREEN}" "${COLOR_WHITE}"
-    printf '%b[2]%b - Restore nvram dhcp_staticlist and dhcp_hostnames from /opt/tmp/\n' "${COLOR_GREEN}" "${COLOR_WHITE}"
-    printf '%b[3]%b - Preview dhcp_staticlist and dhcp_hostnames in dnsmasq format\n' "${COLOR_GREEN}" "${COLOR_WHITE}"
-    printf '%b[4]%b - Append dhcp_staticlist and dhcp_hostnames to dnsmasq.conf.add & Disable DHCP Manual Assignment\n' "${COLOR_GREEN}" "${COLOR_WHITE}"
-    printf '%b[5]%b - Disable DHCP Manual Assignment\n' "${COLOR_GREEN}" "${COLOR_WHITE}"
-    printf '%b[6]%b - Enable DHCP Manual Assignment\n' "${COLOR_GREEN}" "${COLOR_WHITE}"
-    printf '%b[7]%b - Backup nvram dhcp_staticlist and dhcp_hostnames to /opt/tmp/ and clear nvram values\n' "${COLOR_GREEN}" "${COLOR_WHITE}"
-    printf '%b[8]%b - Display character size of dhcp_staticlist and dhcp_hostnames (2999 is the limit)\n' "${COLOR_GREEN}" "${COLOR_WHITE}"
-    printf '%b[e]%b - Exit\n' "${COLOR_GREEN}" "${COLOR_WHITE}"
+    printf "\n\nUse this utility to save or restore %s and %s nvram values\n\n" "${STATICLIST}" "${HOSTLIST}"
+    printf "%b[1]%b - Save nvram %s and %s to /opt/tmp/\n" "${COLOR_GREEN}" "${COLOR_WHITE}" "${STATICLIST}" "${HOSTLIST}"
+    printf "%b[2]%b - Restore nvram %s and %s from /opt/tmp/\n" "${COLOR_GREEN}" "${COLOR_WHITE}" "${STATICLIST}" "${HOSTLIST}"
+    printf "%b[3]%b - Preview %s and %s in dnsmasq format\n" "${COLOR_GREEN}" "${COLOR_WHITE}" "${STATICLIST}" "${HOSTLIST}"
+    printf "%b[4]%b - Append %s and %s to dnsmasq.conf.add & Disable DHCP Manual Assignment\n" "${COLOR_GREEN}" "${COLOR_WHITE}" "${STATICLIST}" "${HOSTLIST}"
+    printf "%b[5]%b - Disable DHCP Manual Assignment\n" "${COLOR_GREEN}" "${COLOR_WHITE}"
+    printf "%b[6]%b - Enable DHCP Manual Assignment\n" "${COLOR_GREEN}" "${COLOR_WHITE}"
+    printf "%b[7]%b - Backup nvram %s and %s to /opt/tmp/ and clear nvram values\n" "${COLOR_GREEN}" "${COLOR_WHITE}" "${STATICLIST}" "${HOSTLIST}"
+    printf "%b[8]%b - Display character size of %s and %s (2999 is the limit)\n" "${COLOR_GREEN}" "${COLOR_WHITE}" "${STATICLIST}" "${HOSTLIST}"
+    printf "%b[e]%b - Exit\n" "${COLOR_GREEN}" "${COLOR_WHITE}"
     echo
     printf "==> "
     read -r option
@@ -53,7 +55,7 @@ Menu_DHCP_Staticlist() {
       Save_DHCP_Hostnames
       echo
       echo "Press enter to continue"
-      read -r
+      read -r tmp1
       Menu_DHCP_Staticlist
       break
       ;;
@@ -129,7 +131,7 @@ Menu_DHCP_Staticlist() {
       Save_DHCP_Staticlist
       Save_DHCP_Hostnames
       nvram unset dhcp_staticlist
-      nvram unset dhcp_hostnames
+      nvram unset custom_clientlist
       nvram set dhcp_static_x=0
       nvram commit
       echo
@@ -153,18 +155,18 @@ Menu_DHCP_Staticlist() {
       echo "The current character size of dhcp_staticlist is: $wc_staticlist"
       echo
 
-      if [ -s /jffs/nvram/dhcp_hostnames ]; then # HND Routers store here
-        wc_hostnames=$(wc -m /jffs/nvram/dhcp_hostnames | awk '{print $1}')
+      if [ -s /jffs/nvram/custom_clientlist ]; then # HND Routers store here
+        wc_hostnames=$(wc -m /jffs/nvram/custom_clientlist | awk '{print $1}')
         # wc appears to count line return or extra line?
         wc_hostnames=$((wc_hostnames - 1))
       else
-        wc_hostnames=$(nvram get dhcp_hostnames | wc -m)
+        wc_hostnames=$(nvram get custom_clientlist | wc -m)
         # wc appears to count line return or extra line?
         wc_hostnames=$((wc_hostnames - 1))
       fi
 
       echo
-      echo "The current character size of dhcp_hostnames is: $wc_hostnames"
+      echo "The current character size of custom_clientlist is: $wc_hostnames"
       echo
       echo "Press enter to continue"
       read -r
@@ -222,10 +224,10 @@ Save_DHCP_Hostnames() {
     Make_Backup "$DHCP_HOSTNAMES"
   fi
 
-  if [ -s /jffs/nvram/dhcp_hostnames ]; then #HND Routers store hostnames in a file
-    cp /jffs/nvram/dhcp_hostnames "$DHCP_HOSTNAMES" && echo "dhcp_hostnames nvram values successfully stored in $DHCP_HOSTNAMES" || echo "Unknown error occurred trying to save $DHCP_HOSTNAMES"
+  if [ -s /jffs/nvram/custom_clientlist ]; then #HND Routers store hostnames in a file
+    cp /jffs/nvram/custom_clientlist "$DHCP_HOSTNAMES" && echo "custom_clientlist nvram values successfully stored in $DHCP_HOSTNAMES" || echo "Unknown error occurred trying to save $DHCP_HOSTNAMES"
   else
-    nvram get dhcp_hostnames >"$DHCP_HOSTNAMES" && echo "dhcp_hostnames nvram values successfully stored in $DHCP_HOSTNAMES" || echo "Unknown error occurred trying to save $DHCP_HOSTNAMES"
+    nvram get custom_clientlist >"$DHCP_HOSTNAMES" && echo "custom_clientlist nvram values successfully stored in $DHCP_HOSTNAMES" || echo "Unknown error occurred trying to save $DHCP_HOSTNAMES"
   fi
 }
 
@@ -256,14 +258,14 @@ Restore_DHCP_Staticlist() {
 
 Restore_DHCP_Hostnames() {
   if [ "$MODEL" = "RT-AC86U" ] || [ "$MODEL" = "RT-AX88U" ]; then #HND Routers store hostnames in a file
-    cp "$DHCP_HOSTNAMES" /jffs/nvram/dhcp_hostnames
-    if [ -s /jffs/nvram/dhcp_hostnames ]; then
-      echo "dhcp_hostnames successfully restored"
+    cp "$DHCP_HOSTNAMES" /jffs/nvram/custom_clientlist
+    if [ -s /jffs/nvram/custom_clientlist ]; then
+      echo "custom_clientlist successfully restored"
     else
-      echo "Unknown error occurred trying to restore dhcp_hostnames"
+      echo "Unknown error occurred trying to restore custom_clientlist"
     fi
   else
-    nvram set dhcp_hostnames="$(cat /opt/tmp/dhcp_hostnames.txt)"
+    nvram set custom_clientlist="$(cat /opt/tmp/dhcp_hostnames.txt)"
     nvram commit
     sleep 1
     if [ -n "$(nvram get dhcp_hostnames)" ]; then
